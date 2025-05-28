@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flutter Development Notes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .nav {
+            background: #2d3748;
+            padding: 0;
+        }
+        
+        .nav-item {
+            display: inline-block;
+            padding: 15px 25px;
+            color: #cbd5e0;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #4a5568;
+            border-bottom-color: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 30px;
+            min-height: 500px;
+        }
+        
+        .section {
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .encrypted-section {
+            border: 2px dashed #e53e3e;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fed7d7;
+        }
+        
+        .lock-icon {
+            font-size: 2em;
+            color: #e53e3e;
+            margin-bottom: 15px;
+        }
+        
+        .password-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .unlock-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .unlock-btn:hover {
+            background: #38a169;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .highlight {
+            background: #fef5e7;
+            padding: 15px;
+            border-left: 4px solid #ed8936;
+            margin: 15px 0;
+        }
+        
+        .toc {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .toc li {
+            padding: 5px 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+        
+        .toc a {
+            color: #4299e1;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Flutter Development Notes</h1>
+            <p>Complete guide for Flutter app development</p>
+        </div>
+        
+        <nav class="nav">
+            <div class="nav-item active" onclick="showSection('overview')">Overview</div>
+            <div class="nav-item" onclick="showSection('basics')">Basic Concepts</div>
+            <div class="nav-item" onclick="showSection('advanced')">Advanced Topics</div>
+            <div class="nav-item" onclick="showSection('secrets')">🔒 Private Notes</div>
+            <div class="nav-item" onclick="showSection('resources')">Resources</div>
+        </nav>
+        
+        <div class="content">
+            <!-- Overview Section -->
+            <div id="overview" class="section active">
+                <h2>📋 總覽</h2>
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#" onclick="showSection('basics')">基礎概念 - Widget, State Management</a></li>
+                        <li><a href="#" onclick="showSection('advanced')">進階主題 - Performance, Testing</a></li>
+                        <li><a href="#" onclick="showSection('secrets')">私人筆記 - 專案經驗與秘訣</a></li>
+                        <li><a href="#" onclick="showSection('resources')">參考資源 - 有用的套件與連結</a></li>
+                    </ul>
+                </div>
+                
+                <div class="highlight">
+                    <strong>📝 文檔說明：</strong><br>
+                    這是一個自包含的 Flutter 開發心得文檔。部分內容已加密保護，需要密碼才能查看。
+                </div>
+                
+                <h3>🎯 學習目標</h3>
+                <p>透過這份文檔，你將學會：</p>
+                <ul>
+                    <li>Flutter 基礎 Widget 的使用方法</li>
+                    <li>狀態管理的最佳實踐</li>
+                    <li>效能優化技巧</li>
+                    <li>測試策略與實作</li>
+                </ul>
+            </div>
+            
+            <!-- Basic Concepts Section -->
+            <div id="basics" class="section">
+                <h2>🧱 基礎概念</h2>
+                
+                <h3>Widget 基礎</h3>
+                <p>在 Flutter 中，一切都是 Widget。以下是最常用的基礎 Widget：</p>
+                
+                <div class="code-block">
+<pre>// 基本的 StatelessWidget 範例
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo', // App 標題
+      theme: ThemeData(
+        primarySwatch: Colors.blue, // 主題色彩
+      ),
+      home: MyHomePage(), // 首頁 Widget
+    );
+  }
+}</pre>
+                </div>
+                
+                <h3>State Management</h3>
+                <p>狀態管理是 Flutter 開發的核心概念：</p>
+                
+                <div class="code-block">
+<pre>// StatefulWidget 範例
+class Counter extends StatefulWidget {
+  @override
+  _CounterState createState() => _CounterState();
+}
+
+class _CounterState extends State&lt;Counter&gt; {
+  int _counter = 0; // 狀態變數
+  
+  void _incrementCounter() {
+    setState(() {
+      _counter++; // 更新狀態
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Counter')),
+      body: Center(
+        child: Text('Count: $_counter'), // 顯示計數
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter, // 點擊事件
+        child: Icon(Icons.add),
+      ),
+    );
+  }
+}</pre>
+                </div>
+                
+                <div class="highlight">
+                    <strong>💡 重要提醒：</strong><br>
+                    使用 setState() 時要注意效能影響，避免在 build 方法中進行昂貴的運算。
+                </div>
+            </div>
+            
+            <!-- Advanced Topics Section -->
+            <div id="advanced" class="section">
+                <h2>🚀 進階主題</h2>
+                
+                <h3>Performance Optimization</h3>
+                <p>效能優化的關鍵技巧：</p>
+                
+                <div class="code-block">
+<pre>// 使用 const constructor 避免不必要的重建
+class OptimizedWidget extends StatelessWidget {
+  const OptimizedWidget({Key? key}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return const Card( // 使用 const
+      child: ListTile(
+        title: Text('Optimized Item'), // 靜態內容使用 const
+        leading: Icon(Icons.star),
+      ),
+    );
+  }
+}</pre>
+                </div>
+                
+                <h3>Custom Widgets</h3>
+                <p>建立可重用的自訂 Widget：</p>
+                
+                <div class="code-block">
+<pre>// 自訂按鈕 Widget
+class CustomButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final Color? backgroundColor;
+  
+  const CustomButton({
+    Key? key,
+    required this.text, // 必需參數
+    this.onPressed,
+    this.backgroundColor,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8), // 圓角設計
+        ),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}</pre>
+                </div>
+            </div>
+            
+            <!-- Encrypted Section -->
+            <div id="secrets" class="section">
+                <h2>🔒 私人筆記</h2>
+                
+                <div class="encrypted-section" id="encrypted-content">
+                    <div class="lock-icon">🔐</div>
+                    <h3>This section is encrypted</h3>
+                    <p>Enter password to unlock private development notes:</p>
+                    <input type="password" id="password-input" class="password-input" placeholder="Enter password...">
+                    <br>
+                    <button class="unlock-btn" onclick="unlockContent()">Unlock Content</button>
+                    <div id="error-message" style="color: #e53e3e; margin-top: 10px; display: none;">
+                        Incorrect password. Please try again.
+                    </div>
+                </div>
+                
+                <div id="decrypted-content" style="display: none;">
+                    <h3>🤫 專案開發秘訣</h3>
+                    
+                    <div class="highlight">
+                        <strong>⚠️ 重要經驗分享：</strong><br>
+                        以下是從實際專案中學到的寶貴經驗，請妥善保管。
+                    </div>
+                    
+                    <h4>客戶專案注意事項</h4>
+                    <ul>
+                        <li>某客戶的 API 回應時間很慢，需要額外的 loading 處理</li>
+                        <li>iOS 上傳 App Store 時要注意隱私權描述</li>
+                        <li>Android 簽名金鑰備份的重要性</li>
+                    </ul>
+                    
+                    <h4>踩過的坑</h4>
+                    <div class="code-block">
+<pre>// 避免在 initState 中直接呼叫 setState
+@override
+void initState() {
+    super.initState();
+    // 錯誤做法
+    // setState(() { ... }); 
+    
+    // 正確做法：使用 WidgetsBinding
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+            // 初始化邏輯
+        });
+    });
+}</pre>
+                    </div>
+                    
+                    <h4>私人開發技巧</h4>
+                    <p>這些技巧幫助我提高了 50% 的開發效率：</p>
+                    <ul>
+                        <li>使用 Flutter Inspector 除錯 UI 問題</li>
+                        <li>善用 Hot Reload 和 Hot Restart</li>
+                        <li>建立自己的 Widget 範本庫</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Resources Section -->
+            <div id="resources" class="section">
+                <h2>📚 參考資源</h2>
+                
+                <h3>推薦套件</h3>
+                <ul>
+                    <li><strong>provider</strong> - 狀態管理</li>
+                    <li><strong>dio</strong> - HTTP 請求</li>
+                    <li><strong>shared_preferences</strong> - 本地儲存</li>
+                    <li><strong>flutter_bloc</strong> - BLoC 狀態管理</li>
+                    <li><strong>cached_network_image</strong> - 網路圖片快取</li>
+                </ul>
+                
+                <h3>有用的連結</h3>
+                <ul>
+                    <li><a href="https://flutter.dev/docs" target="_blank">Flutter Official Documentation</a></li>
+                    <li><a href="https://pub.dev" target="_blank">Pub.dev - Dart Packages</a></li>
+                    <li><a href="https://github.com/flutter/flutter" target="_blank">Flutter GitHub Repository</a></li>
+                </ul>
+                
+                <h3>開發工具</h3>
+                <div class="code-block">
+<pre>// 有用的 Debug 指令
+flutter doctor          // 檢查開發環境
+flutter clean          // 清理專案
+flutter pub get        // 安裝相依套件
+flutter analyze        // 程式碼分析
+flutter test           // 執行測試</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 加密的內容（使用簡單的 Base64 編碼作為示範）
+        const encryptedData = {
+            password: "flutter123", // 實際使用時應該用更安全的方式
+            content: "已解鎖的私人內容" // 這裡可以放更多加密內容
+        };
+        
+        // 切換頁面功能
+        function showSection(sectionId) {
+            // 隱藏所有 section
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // 移除所有 nav-item 的 active class
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // 顯示選中的 section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // 加上 active class 到對應的 nav-item
+            event.target.classList.add('active');
+        }
+        
+        // 解鎖加密內容
+        function unlockContent() {
+            const passwordInput = document.getElementById('password-input');
+            const errorMessage = document.getElementById('error-message');
+            const encryptedSection = document.getElementById('encrypted-content');
+            const decryptedContent = document.getElementById('decrypted-content');
+            
+            if (passwordInput.value === encryptedData.password) {
+                // 密碼正確，顯示解密內容
+                encryptedSection.style.display = 'none';
+                decryptedContent.style.display = 'block';
+                errorMessage.style.display = 'none';
+            } else {
+                // 密碼錯誤，顯示錯誤訊息
+                errorMessage.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+        
+        // 按 Enter 鍵也可以解鎖
+        document.getElementById('password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                unlockContent();
+            }
+        });
+    </script>
+</body>
+</html>

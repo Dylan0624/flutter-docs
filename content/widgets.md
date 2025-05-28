@@ -1,0 +1,4022 @@
+# Flutter Widget 全解析 - 完整開發指南
+
+## Widget 基礎概念
+
+### Widget 的本質
+
+在 Flutter 中，**一切皆 Widget**。Widget 是 Flutter 應用程式的基本構建塊，它們描述了用戶界面的配置和外觀。
+
+```dart
+// Widget 是不可變的描述
+abstract class Widget {
+  const Widget({Key? key}) : super(key: key);
+  
+  // 每個 Widget 都必須實現 createElement 方法
+  Element createElement();
+  
+  // 用於優化重建過程
+  @override
+  bool operator ==(Object other) => identical(this, other);
+  
+  @override
+  int get hashCode => runtimeType.hashCode;
+}
+```
+
+### Widget 生命週期
+
+Flutter 中有三種核心概念：
+
+1. **Widget**：不可變的配置描述
+2. **Element**：Widget 的實例化，管理生命週期
+3. **RenderObject**：實際的渲染對象
+
+```dart
+// StatefulWidget 生命週期示例
+class MyWidget extends StatefulWidget {
+  @override
+  _MyWidgetState createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // 初始化狀態，只執行一次
+    print('Widget 初始化');
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 依賴發生變化時調用
+    print('依賴變化');
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    // 構建 UI，可能被多次調用
+    return Container(
+      child: Text('Hello Flutter'),
+    );
+  }
+  
+  @override
+  void didUpdateWidget(MyWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Widget 配置更新時調用
+    print('Widget 更新');
+  }
+  
+  @override
+  void dispose() {
+    // 清理資源
+    print('Widget 銷毀');
+    super.dispose();
+  }
+}
+```
+
+### StatelessWidget vs StatefulWidget
+
+```dart
+// StatelessWidget - 無狀態 Widget
+class WelcomeScreen extends StatelessWidget {
+  final String title;
+  
+  const WelcomeScreen({
+    Key? key,
+    required this.title,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Text('Welcome to Flutter!'),
+      ),
+    );
+  }
+}
+
+// StatefulWidget - 有狀態 Widget
+class Counter extends StatefulWidget {
+  @override
+  _CounterState createState() => _CounterState();
+}
+
+class _CounterState extends State<Counter> {
+  int _count = 0;
+  
+  void _increment() {
+    setState(() {
+      _count++;
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('Count: $_count'),
+        ElevatedButton(
+          onPressed: _increment,
+          child: Text('Increment'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+------
+
+## Widget 分類體系
+
+### 按功能分類
+
+1. **基礎 Widget**：Text、Icon、Image 等
+2. **佈局 Widget**：Container、Row、Column、Stack 等
+3. **容器 Widget**：Scaffold、AppBar、Drawer 等
+4. **滾動 Widget**：ListView、GridView、ScrollView 等
+5. **輸入 Widget**：TextField、Form、Checkbox 等
+6. **互動 Widget**：GestureDetector、InkWell、Button 等
+7. **動畫 Widget**：AnimatedContainer、Hero、Transition 等
+8. **輔助 Widget**：Builder、Consumer、Provider 等
+
+### 按渲染特性分類
+
+```dart
+// 1. RenderObjectWidget - 有實際渲染的 Widget
+class CustomPaint extends RenderObjectWidget {
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderCustomPaint();
+  }
+}
+
+// 2. ProxyWidget - 代理其他 Widget
+class InheritedWidget extends ProxyWidget {
+  // 用於數據傳遞
+}
+
+// 3. ComponentWidget - 組合其他 Widget
+class StatelessWidget extends ComponentWidget {
+  // 組合其他 Widget 來構建 UI
+}
+```
+
+------
+
+## 佈局 Widget
+
+### Container - 最常用的佈局容器
+
+```dart
+class ContainerExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // 尺寸約束
+      width: 200,
+      height: 100,
+      // 邊距
+      margin: EdgeInsets.all(16),
+      // 內邊距
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      // 裝飾
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+        gradient: LinearGradient(
+          colors: [Colors.blue, Colors.purple],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      // 變換
+      transform: Matrix4.rotationZ(0.1),
+      child: Text(
+        'Container Example',
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+}
+```
+
+### Row 和 Column - 線性佈局
+
+```dart
+class LinearLayoutExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Row 水平佈局
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Container(
+                height: 50,
+                color: Colors.red,
+                child: Center(child: Text('1')),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Container(
+                height: 50,
+                color: Colors.green,
+                child: Center(child: Text('2')),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(
+                height: 50,
+                color: Colors.blue,
+                child: Center(child: Text('3')),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 20),
+        // Column 垂直佈局
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              height: 50,
+              color: Colors.orange,
+              child: Center(child: Text('Top')),
+            ),
+            SizedBox(height: 10),
+            Container(
+              height: 50,
+              color: Colors.purple,
+              child: Center(child: Text('Bottom')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Stack - 堆疊佈局
+
+```dart
+class StackExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // 背景
+        Container(
+          width: 300,
+          height: 200,
+          color: Colors.grey[300],
+        ),
+        // 定位元素
+        Positioned(
+          top: 20,
+          left: 20,
+          child: Container(
+            width: 50,
+            height: 50,
+            color: Colors.red,
+          ),
+        ),
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: Container(
+            width: 60,
+            height: 40,
+            color: Colors.blue,
+          ),
+        ),
+        // 居中元素
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.green,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.star,
+            color: Colors.white,
+            size: 40,
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Flex 和 Flexible - 彈性佈局
+
+```dart
+class FlexExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Flex Widget
+        Flex(
+          direction: Axis.horizontal,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Container(
+                height: 60,
+                color: Colors.red,
+                child: Center(child: Text('Flex: 2')),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(
+                height: 60,
+                color: Colors.green,
+                child: Center(child: Text('Flex: 1')),
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Container(
+                height: 60,
+                color: Colors.blue,
+                child: Center(child: Text('Flex: 3')),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 20),
+        // Flexible vs Expanded
+        Row(
+          children: [
+            Flexible(
+              flex: 1,
+              child: Container(
+                height: 60,
+                color: Colors.orange,
+                child: Center(child: Text('Flexible')),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(
+                height: 60,
+                color: Colors.purple,
+                child: Center(child: Text('Expanded')),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Wrap - 自動換行佈局
+
+```dart
+class WrapExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8.0, // 水平間距
+      runSpacing: 4.0, // 垂直間距
+      alignment: WrapAlignment.start,
+      children: List.generate(15, (index) {
+        return Chip(
+          label: Text('Item $index'),
+          backgroundColor: Colors.blue[100],
+          deleteIcon: Icon(Icons.close, size: 18),
+          onDeleted: () {
+            print('Delete item $index');
+          },
+        );
+      }),
+    );
+  }
+}
+```
+
+------
+
+## 基礎 Widget
+
+### Text - 文字顯示
+
+```dart
+class TextExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 基本文字
+        Text('Hello Flutter'),
+        
+        // 自訂樣式
+        Text(
+          'Styled Text',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+            decoration: TextDecoration.underline,
+            decorationColor: Colors.red,
+            fontFamily: 'Roboto',
+            letterSpacing: 2.0,
+            height: 1.5, // 行高
+          ),
+        ),
+        
+        // Rich Text
+        RichText(
+          text: TextSpan(
+            text: 'Hello ',
+            style: DefaultTextStyle.of(context).style,
+            children: [
+              TextSpan(
+                text: 'Flutter',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              TextSpan(text: ' World!'),
+            ],
+          ),
+        ),
+        
+        // 溢出處理
+        Container(
+          width: 100,
+          child: Text(
+            'This is a very long text that will overflow',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
+        
+        // 選擇性文字
+        SelectableText(
+          'This text can be selected and copied',
+          style: TextStyle(fontSize: 16),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Image - 圖片顯示
+
+```dart
+class ImageExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 網路圖片
+        Image.network(
+          'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+          width: 200,
+          height: 150,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 200,
+              height: 150,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 200,
+              height: 150,
+              color: Colors.grey[300],
+              child: Icon(Icons.error),
+            );
+          },
+        ),
+        
+        SizedBox(height: 20),
+        
+        // 本地資源圖片
+        Image.asset(
+          'assets/images/flutter_logo.png',
+          width: 100,
+          height: 100,
+        ),
+        
+        SizedBox(height: 20),
+        
+        // 圓形頭像
+        CircleAvatar(
+          radius: 50,
+          backgroundImage: NetworkImage(
+            'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+          ),
+          child: Text('Avatar'),
+        ),
+        
+        SizedBox(height: 20),
+        
+        // 自訂形狀圖片
+        ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: Image.network(
+            'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+            width: 150,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Icon - 圖標顯示
+
+```dart
+class IconExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Material Icons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Icon(Icons.home, size: 30, color: Colors.blue),
+            Icon(Icons.favorite, size: 30, color: Colors.red),
+            Icon(Icons.settings, size: 30, color: Colors.grey),
+            Icon(Icons.search, size: 30, color: Colors.green),
+          ],
+        ),
+        
+        SizedBox(height: 20),
+        
+        // 自訂圖標按鈕
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              icon: Icon(Icons.thumb_up),
+              onPressed: () => print('Like pressed'),
+              color: Colors.blue,
+              iconSize: 30,
+            ),
+            IconButton(
+              icon: Icon(Icons.share),
+              onPressed: () => print('Share pressed'),
+              color: Colors.green,
+              iconSize: 30,
+            ),
+            IconButton(
+              icon: Icon(Icons.bookmark),
+              onPressed: () => print('Bookmark pressed'),
+              color: Colors.orange,
+              iconSize: 30,
+            ),
+          ],
+        ),
+        
+        SizedBox(height: 20),
+        
+        // 圖標與文字組合
+        Column(
+          children: [
+            Icon(Icons.cloud_download, size: 50, color: Colors.blue),
+            SizedBox(height: 8),
+            Text('Download', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+------
+
+## 輸入與互動 Widget
+
+### TextField - 文字輸入
+
+```dart
+class TextFieldExample extends StatefulWidget {
+  @override
+  _TextFieldExampleState createState() => _TextFieldExampleState();
+}
+
+class _TextFieldExampleState extends State<TextFieldExample> {
+  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscureText = true;
+  String _inputText = '';
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // 基本文字輸入框
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              labelText: 'Username',
+              hintText: 'Enter your username',
+              prefixIcon: Icon(Icons.person),
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _inputText = value;
+              });
+            },
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 密碼輸入框
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscureText,
+            decoration: InputDecoration(
+              labelText: 'Password',
+              hintText: 'Enter your password',
+              prefixIcon: Icon(Icons.lock),
+              suffixIcon: IconButton(
+                icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+              border: OutlineInputBorder(),
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 多行文字輸入框
+          TextField(
+            maxLines: 4,
+            decoration: InputDecoration(
+              labelText: 'Description',
+              hintText: 'Enter description...',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder(),
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 數字輸入框
+          TextField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Age',
+              prefixIcon: Icon(Icons.calendar_today),
+              border: OutlineInputBorder(),
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 顯示輸入的文字
+          Text('Input: $_inputText'),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Form - 表單驗證
+
+```dart
+class FormExample extends StatefulWidget {
+  @override
+  _FormExampleState createState() => _FormExampleState();
+}
+
+class _FormExampleState extends State<FormExample> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _nameController = TextEditingController();
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            // 姓名輸入
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Full Name',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your name';
+                }
+                if (value.length < 2) {
+                  return 'Name must be at least 2 characters';
+                }
+                return null;
+              },
+            ),
+            
+            SizedBox(height: 16),
+            
+            // 電子郵件輸入
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your email';
+                }
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}).hasMatch(value)) {
+                  return 'Please enter a valid email';
+                }
+                return null;
+              },
+            ),
+            
+            SizedBox(height: 24),
+            
+            // 提交按鈕
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // 表單驗證通過
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Form submitted successfully!')),
+                  );
+                }
+              },
+              child: Text('Submit'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Button - 按鈕系列
+
+```dart
+class ButtonExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ElevatedButton - 凸起按鈕
+          ElevatedButton(
+            onPressed: () => print('ElevatedButton pressed'),
+            child: Text('Elevated Button'),
+            style: ElevatedButton.styleFrom(
+              primary: Colors.blue,
+              onPrimary: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 5,
+            ),
+          ),
+          
+          SizedBox(height: 12),
+          
+          // OutlinedButton - 輪廓按鈕
+          OutlinedButton(
+            onPressed: () => print('OutlinedButton pressed'),
+            child: Text('Outlined Button'),
+            style: OutlinedButton.styleFrom(
+              primary: Colors.blue,
+              padding: EdgeInsets.symmetric(vertical: 12),
+              side: BorderSide(color: Colors.blue, width: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          
+          SizedBox(height: 12),
+          
+          // TextButton - 文字按鈕
+          TextButton(
+            onPressed: () => print('TextButton pressed'),
+            child: Text('Text Button'),
+            style: TextButton.styleFrom(
+              primary: Colors.blue,
+              padding: EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+          
+          SizedBox(height: 12),
+          
+          // FloatingActionButton - 浮動動作按鈕
+          FloatingActionButton(
+            onPressed: () => print('FAB pressed'),
+            child: Icon(Icons.add),
+            backgroundColor: Colors.blue,
+          ),
+          
+          SizedBox(height: 12),
+          
+          // IconButton - 圖標按鈕
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                onPressed: () => print('Like pressed'),
+                icon: Icon(Icons.favorite),
+                color: Colors.red,
+                iconSize: 30,
+              ),
+              IconButton(
+                onPressed: () => print('Share pressed'),
+                icon: Icon(Icons.share),
+                color: Colors.blue,
+                iconSize: 30,
+              ),
+              IconButton(
+                onPressed: () => print('More pressed'),
+                icon: Icon(Icons.more_vert),
+                color: Colors.grey,
+                iconSize: 30,
+              ),
+            ],
+          ),
+          
+          SizedBox(height: 12),
+          
+          // 自訂按鈕
+          Container(
+            height: 50,
+            child: Material(
+              color: Colors.gradient,
+              borderRadius: BorderRadius.circular(25),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(25),
+                onTap: () => print('Custom button pressed'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple, Colors.blue],
+                    ),
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Custom Gradient Button',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 選擇器 Widget
+
+```dart
+class SelectionExample extends StatefulWidget {
+  @override
+  _SelectionExampleState createState() => _SelectionExampleState();
+}
+
+class _SelectionExampleState extends State<SelectionExample> {
+  bool _checkboxValue = false;
+  bool _switchValue = false;
+  int _radioValue = 1;
+  double _sliderValue = 50.0;
+  RangeValues _rangeValues = RangeValues(20, 80);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Checkbox
+          CheckboxListTile(
+            title: Text('Accept Terms and Conditions'),
+            value: _checkboxValue,
+            onChanged: (value) {
+              setState(() {
+                _checkboxValue = value!;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          
+          // Switch
+          SwitchListTile(
+            title: Text('Enable Notifications'),
+            value: _switchValue,
+            onChanged: (value) {
+              setState(() {
+                _switchValue = value;
+              });
+            },
+          ),
+          
+          // Radio Buttons
+          Column(
+            children: [
+              Text('Select Gender:', style: TextStyle(fontSize: 16)),
+              RadioListTile<int>(
+                title: Text('Male'),
+                value: 1,
+                groupValue: _radioValue,
+                onChanged: (value) {
+                  setState(() {
+                    _radioValue = value!;
+                  });
+                },
+              ),
+              RadioListTile<int>(
+                title: Text('Female'),
+                value: 2,
+                groupValue: _radioValue,
+                onChanged: (value) {
+                  setState(() {
+                    _radioValue = value!;
+                  });
+                },
+              ),
+            ],
+          ),
+          
+          // Slider
+          Column(
+            children: [
+              Text('Age: ${_sliderValue.round()}'),
+              Slider(
+                value: _sliderValue,
+                min: 0,
+                max: 100,
+                divisions: 10,
+                label: _sliderValue.round().toString(),
+                onChanged: (value) {
+                  setState(() {
+                    _sliderValue = value;
+                  });
+                },
+              ),
+            ],
+          ),
+          
+          // Range Slider
+          Column(
+            children: [
+              Text('Range: ${_rangeValues.start.round()} - ${_rangeValues.end.round()}'),
+              RangeSlider(
+                values: _rangeValues,
+                min: 0,
+                max: 100,
+                divisions: 10,
+                labels: RangeLabels(
+                  _rangeValues.start.round().toString(),
+                  _rangeValues.end.round().toString(),
+                ),
+                onChanged: (values) {
+                  setState(() {
+                    _rangeValues = values;
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### GestureDetector - 手勢偵測
+
+```dart
+class GestureExample extends StatefulWidget {
+  @override
+  _GestureExampleState createState() => _GestureExampleState();
+}
+
+class _GestureExampleState extends State<GestureExample> {
+  String _gestureText = 'Tap, drag, or pinch me!';
+  Offset _position = Offset(100, 100);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // 基本手勢偵測
+        Center(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _gestureText = 'Tapped!';
+              });
+            },
+            onDoubleTap: () {
+              setState(() {
+                _gestureText = 'Double Tapped!';
+              });
+            },
+            onLongPress: () {
+              setState(() {
+                _gestureText = 'Long Pressed!';
+              });
+            },
+            onPanUpdate: (details) {
+              setState(() {
+                _gestureText = 'Dragging...';
+              });
+            },
+            onPanEnd: (details) {
+              setState(() {
+                _gestureText = 'Drag ended';
+              });
+            },
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  _gestureText,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ),
+        
+        // 可拖拽的元素
+        Positioned(
+          left: _position.dx,
+          top: _position.dy,
+          child: GestureDetector(
+            onPanUpdate: (details) {
+              setState(() {
+                _position += details.delta;
+              });
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.drag_indicator,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+------
+
+## Material Design Widget
+
+### Scaffold - 應用程式骨架
+
+```dart
+class ScaffoldExample extends StatefulWidget {
+  @override
+  _ScaffoldExampleState createState() => _ScaffoldExampleState();
+}
+
+class _ScaffoldExampleState extends State<ScaffoldExample> {
+  int _selectedIndex = 0;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // 應用程式欄
+      appBar: AppBar(
+        title: Text('Flutter App'),
+        backgroundColor: Colors.blue,
+        elevation: 4,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () => print('Search pressed'),
+          ),
+          IconButton(
+            icon: Icon(Icons.more_vert),
+            onPressed: () => print('More pressed'),
+          ),
+        ],
+      ),
+      
+      // 主要內容
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          Center(child: Text('Home Page', style: TextStyle(fontSize: 24))),
+          Center(child: Text('Search Page', style: TextStyle(fontSize: 24))),
+          Center(child: Text('Profile Page', style: TextStyle(fontSize: 24))),
+        ],
+      ),
+      
+      // 抽屜
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(
+                      'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'John Doe',
+                    style: TextStyle(color: Colors.white, fontSize: 18),
+                  ),
+                  Text(
+                    'john.doe@example.com',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+      
+      // 底部導航欄
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+      
+      // 浮動動作按鈕
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('FAB pressed!'),
+              action: SnackBarAction(
+                label: 'Undo',
+                onPressed: () => print('Undo pressed'),
+              ),
+            ),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
+      
+      // 浮動按鈕位置
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+}
+```
+
+### Card - 卡片
+
+```dart
+class CardExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.all(16),
+      children: [
+        // 基本卡片
+        Card(
+          elevation: 4,
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Basic Card',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text('This is a basic card with some content.'),
+              ],
+            ),
+          ),
+        ),
+        
+        SizedBox(height: 16),
+        
+        // 圖片卡片
+        Card(
+          elevation: 6,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Image.network(
+                'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Image Card',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'This card contains an image with some descriptive text below it.',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () => print('Share pressed'),
+                          child: Text('SHARE'),
+                        ),
+                        TextButton(
+                          onPressed: () => print('Learn More pressed'),
+                          child: Text('LEARN MORE'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        SizedBox(height: 16),
+        
+        // 列表卡片
+        Card(
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(
+                'https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg',
+              ),
+            ),
+            title: Text('List Tile Card'),
+            subtitle: Text('This is a card with a list tile'),
+            trailing: Icon(Icons.more_vert),
+            onTap: () => print('Card tapped'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Dialog - 對話框
+
+```dart
+class DialogExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 警告對話框
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Warning'),
+                  content: Text('Are you sure you want to delete this item?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        print('Item deleted');
+                      },
+                      child: Text('Delete'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Text('Show Alert Dialog'),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 自訂對話框
+          ElevatedButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    height: 200,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 50,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Success!',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text('Operation completed successfully.'),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('OK'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Text('Show Custom Dialog'),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 底部表單
+          ElevatedButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) => Container(
+                  padding: EdgeInsets.all(20),
+                  height: 300,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Bottom Sheet',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 16),
+                      ListTile(
+                        leading: Icon(Icons.photo),
+                        title: Text('Gallery'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          print('Gallery selected');
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.camera_alt),
+                        title: Text('Camera'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          print('Camera selected');
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.file_copy),
+                        title: Text('File'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          print('File selected');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: Text('Show Bottom Sheet'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+------
+
+## 滾動 Widget
+
+### ListView - 列表視圖
+
+```dart
+class ListViewExample extends StatelessWidget {
+  final List<String> items = List.generate(100, (index) => 'Item $index');
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 基本列表
+        Container(
+          height: 200,
+          child: ListView(
+            children: [
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('John Doe'),
+                subtitle: Text('Software Developer'),
+                trailing: Icon(Icons.arrow_forward_ios),
+              ),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('Jane Smith'),
+                subtitle: Text('Designer'),
+                trailing: Icon(Icons.arrow_forward_ios),
+              ),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('Bob Johnson'),
+                subtitle: Text('Project Manager'),
+                trailing: Icon(Icons.arrow_forward_ios),
+              ),
+            ],
+          ),
+        ),
+        
+        Divider(),
+        
+        // ListView.builder - 動態生成
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              return Card(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    child: Text('${index + 1}'),
+                  ),
+                  title: Text(items[index]),
+                  subtitle: Text('Description for ${items[index]}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () => print('Delete ${items[index]}'),
+                  ),
+                  onTap: () => print('Tapped ${items[index]}'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### GridView - 網格視圖
+
+```dart
+class GridViewExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 固定數量的網格
+        Container(
+          height: 200,
+          child: GridView.count(
+            crossAxisCount: 3,
+            crossAxisSpacing: 4,
+            mainAxisSpacing: 4,
+            padding: EdgeInsets.all(8),
+            children: List.generate(9, (index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue[(index % 9) * 100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        
+        Divider(),
+        
+        // 動態網格
+        Expanded(
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.5,
+            ),
+            padding: EdgeInsets.all(8),
+            itemCount: 20,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 4,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.image,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Item $index',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Description',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### PageView - 頁面視圖
+
+```dart
+class PageViewExample extends StatefulWidget {
+  @override
+  _PageViewExampleState createState() => _PageViewExampleState();
+}
+
+class _PageViewExampleState extends State<PageViewExample> {
+  PageController _pageController = PageController();
+  int _currentPage = 0;
+  
+  final List<Color> _colors = [
+    Colors.red,
+    Colors.green,
+    Colors.blue,
+    Colors.orange,
+    Colors.purple,
+  ];
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 頁面指示器
+        Container(
+          height: 50,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_colors.length, (index) {
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _currentPage == index ? Colors.blue : Colors.grey,
+                ),
+              );
+            }),
+          ),
+        ),
+        
+        // 頁面視圖
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _colors.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Container(
+                margin: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _colors[index],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.star,
+                        size: 80,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Page ${index + 1}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        
+        // 導航按鈕
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: _currentPage > 0
+                  ? () {
+                      _pageController.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  : null,
+              child: Text('Previous'),
+            ),
+            ElevatedButton(
+              onPressed: _currentPage < _colors.length - 1
+                  ? () {
+                      _pageController.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    }
+                  : null,
+              child: Text('Next'),
+            ),
+          ],
+        ),
+        
+        SizedBox(height: 16),
+      ],
+    );
+  }
+}
+```
+
+------
+
+## 動畫 Widget
+
+### AnimatedContainer - 動畫容器
+
+```dart
+class AnimatedContainerExample extends StatefulWidget {
+  @override
+  _AnimatedContainerExampleState createState() => _AnimatedContainerExampleState();
+}
+
+class _AnimatedContainerExampleState extends State<AnimatedContainerExample> {
+  double _width = 100;
+  double _height = 100;
+  Color _color = Colors.blue;
+  BorderRadius _borderRadius = BorderRadius.circular(8);
+  
+  void _animateContainer() {
+    setState(() {
+      final random = Random();
+      _width = random.nextDouble() * 200 + 50;
+      _height = random.nextDouble() * 200 + 50;
+      _color = Color.fromRGBO(
+        random.nextInt(256),
+        random.nextInt(256),
+        random.nextInt(256),
+        1,
+      );
+      _borderRadius = BorderRadius.circular(random.nextDouble() * 50);
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedContainer(
+          duration: Duration(seconds: 1),
+          curve: Curves.elasticOut,
+          width: _width,
+          height: _height,
+          decoration: BoxDecoration(
+            color: _color,
+            borderRadius: _borderRadius,
+          ),
+          child: Center(
+            child: Text(
+              'Animated',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        
+        SizedBox(height: 32),
+        
+        ElevatedButton(
+          onPressed: _animateContainer,
+          child: Text('Animate Container'),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Hero - 英雄動畫
+
+```dart
+class HeroExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: EdgeInsets.all(16),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HeroDetailPage(index: index),
+              ),
+            );
+          },
+          child: Hero(
+            tag: 'hero-$index',
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blue[(index % 9) * 100],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Text(
+                  'Item $index',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HeroDetailPage extends StatelessWidget {
+  final int index;
+  
+  const HeroDetailPage({Key? key, required this.index}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Detail $index'),
+      ),
+      body: Center(
+        child: Hero(
+          tag: 'hero-$index',
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              color: Colors.blue[(index % 9) * 100],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                'Detail $index',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### AnimationController - 自訂動畫
+
+```dart
+class CustomAnimationExample extends StatefulWidget {
+  @override
+  _CustomAnimationExampleState createState() => _CustomAnimationExampleState();
+}
+
+class _CustomAnimationExampleState extends State<CustomAnimationExample>
+    with TickerProviderStateMixin {
+  late AnimationController _rotationController;
+  late AnimationController _scaleController;
+  late Animation<double> _rotationAnimation;
+  late Animation<double> _scaleAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _rotationController = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    );
+    
+    _scaleController = AnimationController(
+      duration: Duration(milliseconds: 500),
+      vsync: this,
+    );
+    
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * pi,
+    ).animate(CurvedAnimation(
+      parent: _rotationController,
+      curve: Curves.linear,
+    ));
+    
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.5,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.elasticOut,
+    ));
+  }
+  
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    _scaleController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedBuilder(
+          animation: _rotationAnimation,
+          builder: (context, child) {
+            return Transform.rotate(
+              angle: _rotationAnimation.value,
+              child: AnimatedBuilder(
+                animation: _scaleAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        Icons.star,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        
+        SizedBox(height: 32),
+        
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                _rotationController.repeat();
+              },
+              child: Text('Rotate'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _rotationController.stop();
+              },
+              child: Text('Stop'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _scaleController.forward().then((_) {
+                  _scaleController.reverse();
+                });
+              },
+              child: Text('Scale'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+------
+
+## 狀態管理 Widget
+
+### InheritedWidget - 數據傳遞
+
+```dart
+class CounterInheritedWidget extends InheritedWidget {
+  final int count;
+  final VoidCallback onIncrement;
+  
+  CounterInheritedWidget({
+    Key? key,
+    required this.count,
+    required this.onIncrement,
+    required Widget child,
+  }) : super(key: key, child: child);
+  
+  static CounterInheritedWidget? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<CounterInheritedWidget>();
+  }
+  
+  @override
+  bool updateShouldNotify(CounterInheritedWidget oldWidget) {
+    return count != oldWidget.count;
+  }
+}
+
+class InheritedWidgetExample extends StatefulWidget {
+  @override
+  _InheritedWidgetExampleState createState() => _InheritedWidgetExampleState();
+}
+
+class _InheritedWidgetExampleState extends State<InheritedWidgetExample> {
+  int _count = 0;
+  
+  void _increment() {
+    setState(() {
+      _count++;
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return CounterInheritedWidget(
+      count: _count,
+      onIncrement: _increment,
+      child: Column(
+        children: [
+          CounterDisplay(),
+          SizedBox(height: 16),
+          CounterButton(),
+        ],
+      ),
+    );
+  }
+}
+
+class CounterDisplay extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final counter = CounterInheritedWidget.of(context);
+    
+    return Text(
+      'Count: ${counter?.count ?? 0}',
+      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    );
+  }
+}
+
+class CounterButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final counter = CounterInheritedWidget.of(context);
+    
+    return ElevatedButton(
+      onPressed: counter?.onIncrement,
+      child: Text('Increment'),
+    );
+  }
+}
+```
+
+### ValueNotifier - 輕量級狀態管理
+
+```dart
+class ValueNotifierExample extends StatefulWidget {
+  @override
+  _ValueNotifierExampleState createState() => _ValueNotifierExampleState();
+}
+
+class _ValueNotifierExampleState extends State<ValueNotifierExample> {
+  final ValueNotifier<int> _counter = ValueNotifier<int>(0);
+  final ValueNotifier<Color> _color = ValueNotifier<Color>(Colors.blue);
+  
+  @override
+  void dispose() {
+    _counter.dispose();
+    _color.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // 監聽計數器變化
+        ValueListenableBuilder<int>(
+          valueListenable: _counter,
+          builder: (context, value, child) {
+            return Text(
+              'Counter: $value',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            );
+          },
+        ),
+        
+        SizedBox(height: 16),
+        
+        // 監聽顏色變化
+        ValueListenableBuilder<Color>(
+          valueListenable: _color,
+          builder: (context, color, child) {
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Icon(
+                Icons.favorite,
+                color: Colors.white,
+                size: 40,
+              ),
+            );
+          },
+        ),
+        
+        SizedBox(height: 24),
+        
+        // 操作按鈕
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                _counter.value++;
+              },
+              child: Text('Increment'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _counter.value = 0;
+              },
+              child: Text('Reset'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final colors = [Colors.blue, Colors.red, Colors.green, Colors.orange];
+                _color.value = colors[Random().nextInt(colors.length)];
+              },
+              child: Text('Change Color'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+```
+
+### StreamBuilder - 異步數據流
+
+```dart
+class StreamBuilderExample extends StatefulWidget {
+  @override
+  _StreamBuilderExampleState createState() => _StreamBuilderExampleState();
+}
+
+class _StreamBuilderExampleState extends State<StreamBuilderExample> {
+  late Stream<int> _numberStream;
+  StreamController<String> _messageController = StreamController<String>();
+  
+  @override
+  void initState() {
+    super.initState();
+    // 創建一個每秒遞增的數字流
+    _numberStream = Stream.periodic(Duration(seconds: 1), (count) => count).take(60);
+  }
+  
+  @override
+  void dispose() {
+    _messageController.close();
+    super.dispose();
+  }
+  
+  void _addMessage(String message) {
+    _messageController.add(message);
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // 數字計時器
+          StreamBuilder<int>(
+            stream: _numberStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              }
+              
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+              
+              if (!snapshot.hasData) {
+                return Text('No data');
+              }
+              
+              return Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'Timer: ${snapshot.data}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            },
+          ),
+          
+          SizedBox(height: 24),
+          
+          // 消息流
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: StreamBuilder<String>(
+              stream: _messageController.stream,
+              builder: (context, snapshot) {
+                return ListView(
+                  padding: EdgeInsets.all(8),
+                  children: [
+                    if (snapshot.hasData)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 8),
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${DateTime.now().toString().substring(11, 19)}: ${snapshot.data}',
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+          
+          SizedBox(height: 16),
+          
+          // 操作按鈕
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: () => _addMessage('Hello!'),
+                child: Text('Say Hello'),
+              ),
+              ElevatedButton(
+                onPressed: () => _addMessage('Good morning!'),
+                child: Text('Good Morning'),
+              ),
+              ElevatedButton(
+                onPressed: () => _addMessage('Goodbye!'),
+                child: Text('Goodbye'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+------
+
+## 自訂 Widget 開發
+
+### 創建可重用的組件
+
+```dart
+// 自訂按鈕組件
+class CustomButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final IconData? icon;
+  final bool isLoading;
+  
+  const CustomButton({
+    Key? key,
+    required this.text,
+    this.onPressed,
+    this.backgroundColor,
+    this.textColor,
+    this.icon,
+    this.isLoading = false,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          primary: backgroundColor ?? Theme.of(context).primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    textColor ?? Colors.white,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, color: textColor ?? Colors.white),
+                    SizedBox(width: 8),
+                  ],
+                  Text(
+                    text,
+                    style: TextStyle(
+                      color: textColor ?? Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+// 自訂輸入框組件
+class CustomTextField extends StatefulWidget {
+  final String label;
+  final String? hint;
+  final IconData? prefixIcon;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
+  final TextEditingController? controller;
+  
+  const CustomTextField({
+    Key? key,
+    required this.label,
+    this.hint,
+    this.prefixIcon,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
+    this.validator,
+    this.onChanged,
+    this.controller,
+  }) : super(key: key);
+  
+  @override
+  _CustomTextFieldState createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  bool _obscureText = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.obscureText;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[700],
+          ),
+        ),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: widget.controller,
+          obscureText: _obscureText,
+          keyboardType: widget.keyboardType,
+          validator: widget.validator,
+          onChanged: widget.onChanged,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            prefixIcon: widget.prefixIcon != null 
+                ? Icon(widget.prefixIcon) 
+                : null,
+            suffixIcon: widget.obscureText
+                ? IconButton(
+                    icon: Icon(
+                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 自訂卡片組件
+class CustomCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
+  final double elevation;
+  final VoidCallback? onTap;
+  
+  const CustomCard({
+    Key? key,
+    required this.child,
+    this.padding,
+    this.backgroundColor,
+    this.elevation = 2,
+    this.onTap,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: elevation,
+      color: backgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: padding ?? EdgeInsets.all(16),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+// 使用自訂組件的示例
+class CustomWidgetExample extends StatefulWidget {
+  @override
+  _CustomWidgetExampleState createState() => _CustomWidgetExampleState();
+}
+
+class _CustomWidgetExampleState extends State<CustomWidgetExample> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Custom Widgets')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              CustomCard(
+                child: Column(
+                  children: [
+                    CustomTextField(
+                      label: 'Email',
+                      hint: 'Enter your email',
+                      prefixIcon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter your email';
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    SizedBox(height: 16),
+                    
+                    CustomTextField(
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      prefixIcon: Icons.lock,
+                      obscureText: true,
+                      controller: _passwordController,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter your password';
+                        }
+                        if (value!.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: 24),
+              
+              CustomButton(
+                text: 'Login',
+                icon: Icons.login,
+                isLoading: _isLoading,
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    
+                    // 模擬登入過程
+                    await Future.delayed(Duration(seconds: 2));
+                    
+                    setState(() {
+                      _isLoading = false;
+                    });
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Login successful!')),
+                    );
+                  }
+                },
+              ),
+              
+              SizedBox(height: 16),
+              
+              CustomButton(
+                text: 'Sign Up',
+                backgroundColor: Colors.green,
+                icon: Icons.person_add,
+                onPressed: () {
+                  print('Sign up pressed');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### RenderObject 自訂渲染
+
+```dart
+// 自訂渲染對象
+class CustomPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blue
+      ..style = PaintingStyle.fill;
+    
+    // 繪製圓形
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height / 2),
+      size.width / 4,
+      paint,
+    );
+    
+    // 繪製線條
+    final linePaint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = 3;
+    
+    canvas.drawLine(
+      Offset(0, 0),
+      Offset(size.width, size.height),
+      linePaint,
+    );
+    
+    canvas.drawLine(
+      Offset(size.width, 0),
+      Offset(0, size.height),
+      linePaint,
+    );
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+class CustomPaintWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 200,
+      height: 200,
+      child: CustomPaint(
+        painter: CustomPainter(),
+        child: Center(
+          child: Text(
+            'Custom Paint',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+------
+
+## 性能優化策略
+
+### Widget 重建優化
+
+```dart
+// 使用 const 建構子
+class OptimizedWidget extends StatelessWidget {
+  const OptimizedWidget({Key? key}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        Text('Static Text'), // const constructor
+        SizedBox(height: 16),   // const constructor
+      ],
+    );
+  }
+}
+
+// 分離可變和不可變部分
+class SeparatedWidget extends StatefulWidget {
+  @override
+  _SeparatedWidgetState createState() => _SeparatedWidgetState();
+}
+
+class _SeparatedWidgetState extends State<SeparatedWidget> {
+  int _counter = 0;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 不變的部分使用 const
+        const Text(
+          'This text never changes',
+          style: TextStyle(fontSize: 18),
+        ),
+        
+        // 可變的部分單獨分離
+        CounterDisplay(counter: _counter),
+        
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _counter++;
+            });
+          },
+          child: Text('Increment'),
+        ),
+      ],
+    );
+  }
+}
+
+class CounterDisplay extends StatelessWidget {
+  final int counter;
+  
+  const CounterDisplay({Key? key, required this.counter}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    print('CounterDisplay rebuilt'); // 只有當 counter 改變時才會重建
+    
+    return Text(
+      'Counter: $counter',
+      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    );
+  }
+}
+```
+
+### ListView 性能優化
+
+```dart
+class OptimizedListView extends StatelessWidget {
+  final List<String> items = List.generate(10000, (index) => 'Item $index');
+  
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      // 使用 itemExtent 提高滾動性能
+      itemExtent: 80,
+      // 緩存範圍
+      cacheExtent: 200,
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return ListItem(
+          key: ValueKey(items[index]), // 使用 ValueKey 優化
+          title: items[index],
+          index: index,
+        );
+      },
+    );
+  }
+}
+
+class ListItem extends StatelessWidget {
+  final String title;
+  final int index;
+  
+  const ListItem({
+    Key? key,
+    required this.title,
+    required this.index,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        child: ListTile(
+          leading: CircleAvatar(
+            child: Text('${index + 1}'),
+          ),
+          title: Text(title),
+          trailing: Icon(Icons.arrow_forward_ios),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 圖片性能優化
+
+```dart
+class OptimizedImageWidget extends StatelessWidget {
+  final String imageUrl;
+  
+  const OptimizedImageWidget({Key? key, required this.imageUrl}) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 200,
+      height: 200,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          imageUrl,
+          width: 200,
+          height: 200,
+          fit: BoxFit.cover,
+          // 性能優化配置
+          filterQuality: FilterQuality.medium,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            
+            return Container(
+              width: 200,
+              height: 200,
+              color: Colors.grey[200],
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 200,
+              height: 200,
+              color: Colors.grey[300],
+              child: Icon(Icons.error, size: 50),
+            );
+          },
+          // 使用緩存
+          cacheWidth: 200,
+          cacheHeight: 200,
+        ),
+      ),
+    );
+  }
+}
+```
+
+------
+
+## 最佳實踐與設計模式
+
+### 組件組合模式
+
+```dart
+// 基礎組件
+abstract class BaseButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool enabled;
+  
+  const BaseButton({
+    Key? key,
+    required this.text,
+    this.onPressed,
+    this.enabled = true,
+  }) : super(key: key);
+}
+
+// 主要按鈕
+class PrimaryButton extends BaseButton {
+  const PrimaryButton({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool enabled = true,
+  }) : super(key: key, text: text, onPressed: onPressed, enabled: enabled);
+  
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: enabled ? onPressed : null,
+      style: ElevatedButton.styleFrom(
+        primary: Colors.blue,
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Text(text, style: TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+// 次要按鈕
+class SecondaryButton extends BaseButton {
+  const SecondaryButton({
+    Key? key,
+    required String text,
+    VoidCallback? onPressed,
+    bool enabled = true,
+  }) : super(key: key, text: text, onPressed: onPressed, enabled: enabled);
+  
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: enabled ? onPressed : null,
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(color: Colors.blue),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: Text(text, style: TextStyle(color: Colors.blue)),
+    );
+  }
+}
+```
+
+### Builder 模式
+
+```dart
+class DialogBuilder {
+  String? _title;
+  String? _content;
+  List<Widget> _actions = [];
+  
+  DialogBuilder setTitle(String title) {
+    _title = title;
+    return this;
+  }
+  
+  DialogBuilder setContent(String content) {
+    _content = content;
+    return this;
+  }
+  
+  DialogBuilder addAction(String text, VoidCallback onPressed) {
+    _actions.add(
+      TextButton(
+        onPressed: onPressed,
+        child: Text(text),
+      ),
+    );
+    return this;
+  }
+  
+  Widget build() {
+    return AlertDialog(
+      title: _title != null ? Text(_title!) : null,
+      content: _content != null ? Text(_content!) : null,
+      actions: _actions,
+    );
+  }
+  
+  void show(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => build(),
+    );
+  }
+}
+
+// 使用示例
+void showCustomDialog(BuildContext context) {
+  DialogBuilder()
+      .setTitle('Confirmation')
+      .setContent('Are you sure you want to delete this item?')
+      .addAction('Cancel', () => Navigator.pop(context))
+      .addAction('Delete', () {
+        Navigator.pop(context);
+        print('Item deleted');
+      })
+      .show(context);
+}
+```
+
+### 響應式設計
+
+```dart
+class ResponsiveWidget extends StatelessWidget {
+  final Widget mobile;
+  final Widget tablet;
+  final Widget desktop;
+  
+  const ResponsiveWidget({
+    Key? key,
+    required this.mobile,
+    required this.tablet,
+    required this.desktop,
+  }) : super(key: key);
+  
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          return mobile;
+        } else if (constraints.maxWidth < 1200) {
+          return tablet;
+        } else {
+          return desktop;
+        }
+      },
+    );
+  }
+}
+
+class ResponsiveLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveWidget(
+      mobile: MobileLayout(),
+      tablet: TabletLayout(),
+      desktop: DesktopLayout(),
+    );
+  }
+}
+
+class MobileLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 200,
+          color: Colors.blue,
+          child: Center(child: Text('Mobile Header')),
+        ),
+        Expanded(
+          child: ListView(
+            children: List.generate(20, (index) {
+              return ListTile(
+                title: Text('Mobile Item $index'),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class TabletLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 250,
+          color: Colors.grey[200],
+          child: ListView(
+            children: List.generate(10, (index) {
+              return ListTile(
+                title: Text('Sidebar Item $index'),
+              );
+            }),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Container(
+                height: 100,
+                color: Colors.blue,
+                child: Center(child: Text('Tablet Header')),
+              ),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  children: List.generate(20, (index) {
+                    return Card(
+                      child: Center(child: Text('Item $index')),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class DesktopLayout extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 250,
+          color: Colors.grey[200],
+          child: Column(
+            children: [
+              Container(
+                height: 100,
+                color: Colors.blue,
+                child: Center(child: Text('Navigation')),
+              ),
+              Expanded(
+                child: ListView(
+                  children: List.generate(10, (index) {
+                    return ListTile(
+                      title: Text('Nav Item $index'),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Container(
+                height: 80,
+                color: Colors.blue[100],
+                child: Center(child: Text('Desktop Header')),
+              ),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 4,
+                  children: List.generate(40, (index) {
+                    return Card(
+                      child: Center(child: Text('Item $index')),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          width: 300,
+          color: Colors.grey[100],
+          child: Column(
+            children: [
+              Container(
+                height: 80,
+                color: Colors.green[100],
+                child: Center(child: Text('Sidebar')),
+              ),
+              Expanded(
+                child: ListView(
+                  children: List.generate(15, (index) {
+                    return ListTile(
+                      title: Text('Side Item $index'),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### 主題與樣式管理
+
+```dart
+class AppTheme {
+  static const Color primaryColor = Color(0xFF2196F3);
+  static const Color secondaryColor = Color(0xFF03DAC6);
+  static const Color errorColor = Color(0xFFB00020);
+  
+  static ThemeData lightTheme = ThemeData(
+    primarySwatch: Colors.blue,
+    primaryColor: primaryColor,
+    brightness: Brightness.light,
+    backgroundColor: Colors.white,
+    scaffoldBackgroundColor: Colors.grey[50],
+    
+    // 文字主題
+    textTheme: TextTheme(
+      headline1: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87),
+      headline2: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+      headline3: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87),
+      bodyText1: TextStyle(fontSize: 16, color: Colors.black87),
+      bodyText2: TextStyle(fontSize: 14, color: Colors.black54),
+    ),
+    
+    // 按鈕主題
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: primaryColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+    ),
+    
+    // 卡片主題
+    cardTheme: CardTheme(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    ),
+    
+    // 輸入框主題
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor),
+      ),
+      filled: true,
+      fillColor: Colors.grey[50],
+    ),
+  );
+  
+  static ThemeData darkTheme = ThemeData(
+    primarySwatch: Colors.blue,
+    primaryColor: primaryColor,
+    brightness: Brightness.dark,
+    backgroundColor: Color(0xFF121212),
+    scaffoldBackgroundColor: Color(0xFF121212),
+    
+    textTheme: TextTheme(
+      headline1: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+      headline2: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+      headline3: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.white),
+      bodyText1: TextStyle(fontSize: 16, color: Colors.white70),
+      bodyText2: TextStyle(fontSize: 14, color: Colors.white60),
+    ),
+    
+    cardTheme: CardTheme(
+      elevation: 4,
+      color: Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    ),
+  );
+}
+
+// 使用主題的示例
+class ThemedApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Themed App',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      home: ThemedHomePage(),
+    );
+  }
+}
+
+class ThemedHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Themed App'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Primary Headline',
+              style: theme.textTheme.headline1,
+            ),
+            SizedBox(height: 16),
+            
+            Text(
+              'Secondary Headline',
+              style: theme.textTheme.headline2,
+            ),
+            SizedBox(height: 16),
+            
+            Text(
+              'This is body text that follows the theme configuration.',
+              style: theme.textTheme.bodyText1,
+            ),
+            SizedBox(height: 24),
+            
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Text(
+                      'Themed Card',
+                      style: theme.textTheme.headline3,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'This card uses the theme configuration.',
+                      style: theme.textTheme.bodyText2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            SizedBox(height: 24),
+            
+            ElevatedButton(
+              onPressed: () {},
+              child: Text('Themed Button'),
+            ),
+            
+            SizedBox(height: 16),
+            
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Themed Input',
+                hintText: 'Enter text here...',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 國際化與本地化
+
+```dart
+// 多語言支援
+class AppLocalizations {
+  final Locale locale;
+  
+  AppLocalizations(this.locale);
+  
+  static AppLocalizations? of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  }
+  
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
+  
+  static const List<Locale> supportedLocales = [
+    Locale('en', 'US'),
+    Locale('zh', 'TW'),
+    Locale('ja', 'JP'),
+  ];
+  
+  static Map<String, Map<String, String>> _localizedValues = {
+    'en': {
+      'app_title': 'Flutter App',
+      'welcome': 'Welcome',
+      'hello': 'Hello',
+      'settings': 'Settings',
+      'profile': 'Profile',
+      'logout': 'Logout',
+      'save': 'Save',
+      'cancel': 'Cancel',
+      'delete': 'Delete',
+      'confirm': 'Confirm',
+    },
+    'zh': {
+      'app_title': 'Flutter 應用程式',
+      'welcome': '歡迎',
+      'hello': '你好',
+      'settings': '設定',
+      'profile': '個人資料',
+      'logout': '登出',
+      'save': '保存',
+      'cancel': '取消',
+      'delete': '刪除',
+      'confirm': '確認',
+    },
+    'ja': {
+      'app_title': 'Flutterアプリ',
+      'welcome': 'ようこそ',
+      'hello': 'こんにちは',
+      'settings': '設定',
+      'profile': 'プロフィール',
+      'logout': 'ログアウト',
+      'save': '保存',
+      'cancel': 'キャンセル',
+      'delete': '削除',
+      'confirm': '確認',
+    },
+  };
+  
+  String getText(String key) {
+    return _localizedValues[locale.languageCode]?[key] ?? key;
+  }
+  
+  String get appTitle => getText('app_title');
+  String get welcome => getText('welcome');
+  String get hello => getText('hello');
+  String get settings => getText('settings');
+  String get profile => getText('profile');
+  String get logout => getText('logout');
+  String get save => getText('save');
+  String get cancel => getText('cancel');
+  String get delete => getText('delete');
+  String get confirm => getText('confirm');
+}
+
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+  const _AppLocalizationsDelegate();
+  
+  @override
+  bool isSupported(Locale locale) {
+    return AppLocalizations.supportedLocales.contains(locale);
+  }
+  
+  @override
+  Future<AppLocalizations> load(Locale locale) async {
+    return AppLocalizations(locale);
+  }
+  
+  @override
+  bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+// 國際化應用程式
+class InternationalizedApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Internationalized App',
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: LocalizedHomePage(),
+    );
+  }
+}
+
+class LocalizedHomePage extends StatefulWidget {
+  @override
+  _LocalizedHomePageState createState() => _LocalizedHomePageState();
+}
+
+class _LocalizedHomePageState extends State<LocalizedHomePage> {
+  Locale _currentLocale = Locale('en', 'US');
+  
+  void _changeLocale(Locale locale) {
+    setState(() {
+      _currentLocale = locale;
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(localizations.appTitle),
+        actions: [
+          PopupMenuButton<Locale>(
+          icon: Icon(Icons.language),
+          onSelected: _changeLocale,
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: Locale('en', 'US'),
+              child: Text('English'),
+            ),
+            PopupMenuItem(
+              value: Locale('zh', 'TW'),
+              child: Text('繁體中文'),
+            ),
+            PopupMenuItem(
+              value: Locale('ja', 'JP'),
+              child: Text('日本語'),
+            ),
+          ],
+        ),
+        ],
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              localizations.welcome,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            
+            Text(
+              localizations.hello,
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 24),
+            
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.settings),
+                      title: Text(localizations.settings),
+                      trailing: Icon(Icons.arrow_forward_ios),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text(localizations.profile),
+                      trailing: Icon(Icons.arrow_forward_ios),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.logout),
+                      title: Text(localizations.logout),
+                      trailing: Icon(Icons.arrow_forward_ios),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            SizedBox(height: 24),
+            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text(localizations.save),
+                ),
+                OutlinedButton(
+                  onPressed: () {},
+                  child: Text(localizations.cancel),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(localizations.delete),
+                  style: TextButton.styleFrom(primary: Colors.red),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+### 錯誤處理與異常管理
+
+```dart
+// 全域錯誤處理
+class ErrorHandler {
+  static void handleError(dynamic error, StackTrace? stackTrace) {
+    print('Error: $error');
+    print('Stack trace: $stackTrace');
+    
+    // 這裡可以添加日誌記錄、錯誤報告等功能
+    // 例如：Firebase Crashlytics, Sentry 等
+  }
+}
+
+// 錯誤邊界 Widget
+class ErrorBoundary extends StatefulWidget {
+  final Widget child;
+  final Widget Function(dynamic error)? errorBuilder;
+  
+  const ErrorBoundary({
+    Key? key,
+    required this.child,
+    this.errorBuilder,
+  }) : super(key: key);
+  
+  @override
+  _ErrorBoundaryState createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<ErrorBoundary> {
+  dynamic _error;
+  
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      if (widget.errorBuilder != null) {
+        return widget.errorBuilder!(_error);
+      }
+      
+      return Scaffold(
+        appBar: AppBar(title: Text('Error')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text(
+                'Something went wrong',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text(
+                _error.toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _error = null;
+                  });
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    return widget.child;
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // 捕獲子 Widget 的錯誤
+    FlutterError.onError = (FlutterErrorDetails details) {
+      setState(() {
+        _error = details.exception;
+      });
+      ErrorHandler.handleError(details.exception, details.stack);
+    };
+  }
+}
+
+// 異步操作錯誤處理
+class AsyncOperationWidget extends StatefulWidget {
+  @override
+  _AsyncOperationWidgetState createState() => _AsyncOperationWidgetState();
+}
+
+class _AsyncOperationWidgetState extends State<AsyncOperationWidget> {
+  bool _isLoading = false;
+  String? _error;
+  String? _data;
+  
+  Future<void> _performAsyncOperation() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    
+    try {
+      // 模擬異步操作
+      await Future.delayed(Duration(seconds: 2));
+      
+      // 隨機產生錯誤來演示錯誤處理
+      if (Random().nextBool()) {
+        throw Exception('Random error occurred');
+      }
+      
+      setState(() {
+        _data = 'Operation completed successfully at ${DateTime.now()}';
+        _isLoading = false;
+      });
+    } catch (error, stackTrace) {
+      setState(() {
+        _error = error.toString();
+        _isLoading = false;
+      });
+      
+      ErrorHandler.handleError(error, stackTrace);
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_isLoading)
+            Column(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading...'),
+              ],
+            )
+          else if (_error != null)
+            Column(
+              children: [
+                Icon(Icons.error, size: 48, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Error occurred:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red),
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _performAsyncOperation,
+                  child: Text('Retry'),
+                ),
+              ],
+            )
+          else if (_data != null)
+            Column(
+              children: [
+                Icon(Icons.check_circle, size: 48, color: Colors.green),
+                SizedBox(height: 16),
+                Text(
+                  'Success!',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(_data!),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _performAsyncOperation,
+                  child: Text('Run Again'),
+                ),
+              ],
+            )
+          else
+            ElevatedButton(
+              onPressed: _performAsyncOperation,
+              child: Text('Start Async Operation'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 測試策略
+
+```dart
+// Widget 測試示例
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+
+void main() {
+  group('Custom Button Tests', () {
+    testWidgets('CustomButton displays correct text', (WidgetTester tester) async {
+      const buttonText = 'Test Button';
+      
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomButton(
+              text: buttonText,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.text(buttonText), findsOneWidget);
+    });
+    
+    testWidgets('CustomButton calls onPressed when tapped', (WidgetTester tester) async {
+      bool wasPressed = false;
+      
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomButton(
+              text: 'Test Button',
+              onPressed: () {
+                wasPressed = true;
+              },
+            ),
+          ),
+        ),
+      );
+      
+      await tester.tap(find.byType(CustomButton));
+      await tester.pump();
+      
+      expect(wasPressed, isTrue);
+    });
+    
+    testWidgets('CustomButton shows loading indicator when isLoading is true', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomButton(
+              text: 'Loading Button',
+              isLoading: true,
+              onPressed: () {},
+            ),
+          ),
+        ),
+      );
+      
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Loading Button'), findsNothing);
+    });
+  });
+  
+  group('Counter Widget Tests', () {
+    testWidgets('Counter increments correctly', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Counter(),
+          ),
+        ),
+      );
+      
+      expect(find.text('Count: 0'), findsOneWidget);
+      
+      await tester.tap(find.text('Increment'));
+      await tester.pump();
+      
+      expect(find.text('Count: 1'), findsOneWidget);
+    });
+  });
+}
+
+// 單元測試示例
+import 'package:test/test.dart';
+
+void main() {
+  group('Utility Functions', () {
+    test('Email validation works correctly', () {
+      expect(isValidEmail('test@example.com'), isTrue);
+      expect(isValidEmail('invalid-email'), isFalse);
+      expect(isValidEmail(''), isFalse);
+    });
+    
+    test('Password strength calculation', () {
+      expect(calculatePasswordStrength('123'), equals(PasswordStrength.weak));
+      expect(calculatePasswordStrength('password123'), equals(PasswordStrength.medium));
+      expect(calculatePasswordStrength('StrongP@ssw0rd!'), equals(PasswordStrength.strong));
+    });
+  });
+}
+
+bool isValidEmail(String email) {
+  return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}).hasMatch(email);
+}
+
+enum PasswordStrength { weak, medium, strong }
+
+PasswordStrength calculatePasswordStrength(String password) {
+  if (password.length < 6) return PasswordStrength.weak;
+  if (password.length < 10) return PasswordStrength.medium;
+  return PasswordStrength.strong;
+}
+```
+
+------
+
+## 總結
+
+本指南涵蓋了 Flutter Widget 開發的各個方面，從基礎概念到高級技巧：
+
+### 核心概念
+
+- **Widget 樹結構**：理解 Widget、Element、RenderObject 的關係
+- **狀態管理**：StatelessWidget vs StatefulWidget 的選擇
+- **生命週期**：掌握 Widget 的完整生命週期
+
+### 佈局系統
+
+- **Flex 佈局**：Row、Column、Flex 的靈活運用
+- **堆疊佈局**：Stack、Positioned 的定位控制
+- **響應式設計**：適配不同螢幕尺寸的策略
+
+### 性能優化
+
+- **Widget 重建優化**：使用 const、分離可變部分
+- **列表性能**：ListView 的最佳實踐
+- **記憶體管理**：正確處理資源釋放
+
+### 開發實踐
+
+- **組件設計**：創建可重用、可維護的組件
+- **錯誤處理**：建立完善的錯誤處理機制
+- **測試策略**：確保代碼品質的測試方法
+
+### 設計模式
+
+- **Builder 模式**：靈活構建複雜 Widget
+- **組合模式**：組件的合理組織
+- **主題管理**：統一的視覺設計系統
+
+掌握這些概念和技巧，能夠幫助開發者構建高品質、高性能的 Flutter 應用程式。記住，優秀的 Flutter 開發不僅在於了解各種 Widget，更在於理解如何合理組織和優化它們，創造出色的用戶體驗。
