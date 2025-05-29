@@ -15,7 +15,52 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
             line-height: 1.6;
+            /* 修改：只對非程式碼區域禁用選取，允許複製程式碼 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
+        }
+        
+        /* 修改：允許程式碼區域被選取和複製 */
+        .content-wrapper pre,
+        .content-wrapper code,
+        .decrypted-content pre,
+        .decrypted-content code {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        
+        /* 新增：為程式碼區域添加複製按鈕樣式 */
+        .code-block-wrapper {
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        
+        .copy-btn.copied {
+            background: #28a745;
+            color: white;
         }
         
         .main-container {
@@ -137,6 +182,7 @@
             overflow-x: auto;
             margin: 25px 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         
         .content-wrapper code {
@@ -299,7 +345,7 @@
             max-height: 200px;
             overflow-y: auto;
             font-size: 0.8rem;
-            display: none; /* 修正：顯示除錯日誌以便調試 */
+            display: none;
             z-index: 1000;
             width: 300px;
         }
@@ -604,49 +650,55 @@ Cordova/PhoneGap: 60-70% 效能
 </ul>
 <hr />
 <h2>🎓 學習路徑建議</h2>
-<h3>第一週：基礎概念</h3>
+<h3>基礎概念</h3>
 <ul>
 <li>[ ] 完成環境設定</li>
 <li>[ ] 理解 Widget 概念</li>
 <li>[ ] 學會基本佈局 (Row, Column, Container)</li>
 <li>[ ] 練習 StatelessWidget 和 StatefulWidget</li>
 <li>[ ] 完成第一個自訂應用程式</li>
+<li>[ ] 在頁面標題找彩蛋</li>
 </ul>
-<h3>第二週：UI 開發</h3>
+<h3>UI 開發</h3>
 <ul>
 <li>[ ] 學習 Material Design Widget</li>
 <li>[ ] 掌握 ListView 和 GridView</li>
 <li>[ ] 理解導航和路由</li>
 <li>[ ] 練習表單輸入和驗證</li>
 <li>[ ] 學習主題和樣式</li>
+<li>[ ] 不是這個分頁的標題</li>
 </ul>
-<h3>第三週：狀態管理</h3>
+<h3>狀態管理</h3>
 <ul>
 <li>[ ] 理解 setState 的使用</li>
 <li>[ ] 學習 InheritedWidget</li>
 <li>[ ] 嘗試 Provider 套件</li>
 <li>[ ] 理解狀態管理的最佳實踐</li>
+<li>[ ] 是整個標題 (Flutter Development Documentation)</li>
 </ul>
-<h3>第四週：進階功能</h3>
+<h3>進階功能</h3>
 <ul>
 <li>[ ] 網路請求和 API 整合</li>
 <li>[ ] 本地資料儲存</li>
 <li>[ ] 圖片處理和快取</li>
 <li>[ ] 動畫基礎</li>
+<li>[ ] 對就是紫色那個底圖標題</li>
 </ul>
-<h3>第五週：實戰專案</h3>
+<h3>實戰專案</h3>
 <ul>
 <li>[ ] 規劃一個完整的應用程式</li>
 <li>[ ] 實作核心功能</li>
 <li>[ ] 加入錯誤處理</li>
 <li>[ ] 優化使用者體驗</li>
+<li>[ ] 在背景上</li>
 </ul>
-<h3>第六週：部署和優化</h3>
+<h3>部署和優化</h3>
 <ul>
 <li>[ ] 學習應用程式打包</li>
 <li>[ ] 效能優化技巧</li>
 <li>[ ] 測試策略</li>
 <li>[ ] 準備發佈到商店</li>
+<li>[ ] 右上角有個隱藏 icon</li>
 </ul>
 <hr />
 <h2>📚 推薦學習資源</h2>
@@ -15078,9 +15130,8 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
                                     <i class="fas fa-lightbulb"></i>
                                     <strong>提示：</strong>閱讀完整份文件即可知道密碼 😉
                                     <br>
-                                    <small class="text-muted">仔細的做完每個練習，密碼可能就在某個地方...</small>
+                                    <small class="text-muted">仔細的做完每個練習 (🎯 實作練習)，密碼可能就在某個地方...</small>
                                     <br>
-                                    <small class="text-success">🎉 恭喜你發現了這個隱藏的真相！</small>
                                 </div>
                             </div>
                             <div class="input-group mb-3">
@@ -15108,6 +15159,111 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     
+    <script>
+        // 新增：複製程式碼功能
+        function addCopyButtons() {
+            const preElements = document.querySelectorAll('pre');
+            preElements.forEach((pre, index) => {
+                // 如果已經有複製按鈕，跳過
+                if (pre.querySelector('.copy-btn')) return;
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                copyBtn.title = 'Copy code';
+                
+                copyBtn.addEventListener('click', async () => {
+                    const code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
+                    
+                    try {
+                        await navigator.clipboard.writeText(code);
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        copyBtn.classList.add('copied');
+                        copyBtn.title = 'Copied!';
+                        
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                            copyBtn.classList.remove('copied');
+                            copyBtn.title = 'Copy code';
+                        }, 2000);
+                        
+                        showMessage('程式碼已複製到剪貼簿！', 'success');
+                    } catch (err) {
+                        // 使用舊方法作為後備
+                        const textArea = document.createElement('textarea');
+                        textArea.value = code;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        copyBtn.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                            copyBtn.classList.remove('copied');
+                        }, 2000);
+                        
+                        showMessage('程式碼已複製到剪貼簿！', 'success');
+                    }
+                });
+                
+                pre.style.position = 'relative';
+                pre.appendChild(copyBtn);
+            });
+        }
+        
+        // 頁面載入完成後添加複製按鈕
+        document.addEventListener('DOMContentLoaded', function() {
+            addCopyButtons();
+            
+            // 監聽 tab 切換，為新內容添加複製按鈕
+            const tabLinks = document.querySelectorAll('a[data-bs-toggle="tab"]');
+            tabLinks.forEach(tabLink => {
+                tabLink.addEventListener('shown.bs.tab', function () {
+                    setTimeout(addCopyButtons, 100); // 延遲確保內容已載入
+                });
+            });
+        });
+        
+        // 修改右鍵選單事件，只對非程式碼區域禁用
+        document.addEventListener('contextmenu', function(e) {
+            // 如果點擊的是程式碼區域，允許右鍵選單
+            if (e.target.closest('pre') || e.target.closest('code')) {
+                return true;
+            }
+            e.preventDefault();
+        });
+        
+        // 修改選取事件，允許在程式碼區域選取
+        document.addEventListener('selectstart', function(e) {
+            // 如果選取的是程式碼區域，允許選取
+            if (e.target.closest('pre') || e.target.closest('code')) {
+                return true;
+            }
+            e.preventDefault();
+        });
+        
+        // 修改鍵盤事件，允許在程式碼區域使用 Ctrl+C
+        document.addEventListener('keydown', function(e) {
+            // 如果焦點在程式碼區域，允許複製快捷鍵
+            if (e.target.closest('pre') || e.target.closest('code')) {
+                if (e.ctrlKey && e.key === 'c') {
+                    return true; // 允許複製
+                }
+            }
+            
+            // 其他開發者工具快捷鍵仍然禁用
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) ||
+                (e.ctrlKey && (e.key === 'u' || e.key === 'U'))) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+    
     
         <script>
         (function() {
@@ -15120,20 +15276,20 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
             }
             
             // 隱藏的誘餌數據陣列
-            const _0f6dbf4b0a4c81e1 = ["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"];
-            const _bf599aba915d22cb = 2;
+            const _6b016bca40d34b61 = ["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"];
+            const _ee09d9d7e29f7e8f = 2;
             
             // 簡化的密碼驗證函數
-            const _224e5cd89d40a80e = async (_6e792fd6fb9261d7) => {
+            const _64c33236a6778e36 = async (_b308e55760e1d689) => {
                 try {
                     // 直接驗證密碼 19831203
-                    if (_6e792fd6fb9261d7 === '19831203') {
+                    if (_b308e55760e1d689 === '19831203') {
                         return true;
                     }
                     
                     // 其他密碼用雜湊驗證
                     const encoder = new TextEncoder();
-                    const data = encoder.encode(_6e792fd6fb9261d7);
+                    const data = encoder.encode(_b308e55760e1d689);
                     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -15145,44 +15301,44 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
             };
             
             // 簡化的解密函數
-            const _f468ade9b7f36ab9 = async (_0216ee6343874fa1, _090254771367f74a) => {
+            const _be8617df6a3522f6 = async (_82257686187759b6, _19799f54cdc1e420) => {
                 try {
                     showMessage('開始解密過程...', 'info');
                     
                     // 獲取加密內容
-                    const _f930b78605c6a8de = _0f6dbf4b0a4c81e1[_bf599aba915d22cb];
-                    if (!_f930b78605c6a8de) {
+                    const _8e7bd5ae3af59d14 = _6b016bca40d34b61[_ee09d9d7e29f7e8f];
+                    if (!_8e7bd5ae3af59d14) {
                         throw new Error('找不到加密內容');
                     }
                     
-                    console.log('加密內容長度:', _f930b78605c6a8de.length);
+                    console.log('加密內容長度:', _8e7bd5ae3af59d14.length);
                     
                     // Step 1: Base64 解碼
                     showMessage('執行 Base64 解碼...', 'info');
-                    const _c080b1bf2d1d7dae = Uint8Array.from(atob(_f930b78605c6a8de), c => c.charCodeAt(0));
-                    console.log('Base64 解碼後長度:', _c080b1bf2d1d7dae.length);
+                    const _dccb05e72067e4c1 = Uint8Array.from(atob(_8e7bd5ae3af59d14), c => c.charCodeAt(0));
+                    console.log('Base64 解碼後長度:', _dccb05e72067e4c1.length);
                     
                     // Step 2: 反混淆 (XOR)
                     showMessage('執行反混淆處理...', 'info');
                     const obfuscationKey = 'flutter_obfuscation_key_2024';
-                    const _c4a0f6578ea80f31 = new Uint8Array(_c080b1bf2d1d7dae.length);
-                    for (let i = 0; i < _c080b1bf2d1d7dae.length; i++) {
-                        _c4a0f6578ea80f31[i] = _c080b1bf2d1d7dae[i] ^ obfuscationKey.charCodeAt(i % obfuscationKey.length);
+                    const _3b918c7558f45733 = new Uint8Array(_dccb05e72067e4c1.length);
+                    for (let i = 0; i < _dccb05e72067e4c1.length; i++) {
+                        _3b918c7558f45733[i] = _dccb05e72067e4c1[i] ^ obfuscationKey.charCodeAt(i % obfuscationKey.length);
                     }
-                    console.log('反混淆後長度:', _c4a0f6578ea80f31.length);
+                    console.log('反混淆後長度:', _3b918c7558f45733.length);
                     
                     // Step 3: 密碼解密 (XOR)
                     showMessage('執行密碼解密...', 'info');
-                    const passwordBytes = new TextEncoder().encode(_090254771367f74a);
-                    const _4612bef3890ddc28 = new Uint8Array(_c4a0f6578ea80f31.length);
-                    for (let i = 0; i < _c4a0f6578ea80f31.length; i++) {
-                        _4612bef3890ddc28[i] = _c4a0f6578ea80f31[i] ^ passwordBytes[i % passwordBytes.length];
+                    const passwordBytes = new TextEncoder().encode(_19799f54cdc1e420);
+                    const _056c42c6b5aa8acf = new Uint8Array(_3b918c7558f45733.length);
+                    for (let i = 0; i < _3b918c7558f45733.length; i++) {
+                        _056c42c6b5aa8acf[i] = _3b918c7558f45733[i] ^ passwordBytes[i % passwordBytes.length];
                     }
-                    console.log('密碼解密後長度:', _4612bef3890ddc28.length);
+                    console.log('密碼解密後長度:', _056c42c6b5aa8acf.length);
                     
                     // Step 4: 解壓縮
                     showMessage('執行數據解壓縮...', 'info');
-                    const decompressed = pako.inflate(_4612bef3890ddc28, { to: 'string' });
+                    const decompressed = pako.inflate(_056c42c6b5aa8acf, { to: 'string' });
                     console.log('解壓縮成功，內容長度:', decompressed.length);
                     
                     showMessage('解密完成！', 'success');
@@ -15196,18 +15352,18 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
             };
             
             // 嘗試次數限制
-            let _2cf34fa5ac7513db = 0;
-            const _ae9ef4fde3b4e133 = 3;
-            let _95bb0ef3425baf35 = false;
+            let _79667b2d8aebab94 = 0;
+            const _74524b5567b9345f = 3;
+            let _24f7864bf16cc59a = false;
             
             // 主要解密函數
-            window.decryptContent = async (_0216ee6343874fa1) => {
-                if (_95bb0ef3425baf35) {
+            window.decryptContent = async (_82257686187759b6) => {
+                if (_24f7864bf16cc59a) {
                     showMessage('嘗試次數過多，請重新整理頁面。', 'danger');
                     return;
                 }
                 
-                const passwordInput = document.getElementById('password-' + _0216ee6343874fa1);
+                const passwordInput = document.getElementById('password-' + _82257686187759b6);
                 const password = passwordInput.value.trim();
                 
                 if (!password) {
@@ -15218,14 +15374,14 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
                 try {
                     // 驗證密碼
                     showMessage('驗證密碼...', 'info');
-                    const isValid = await _224e5cd89d40a80e(password);
+                    const isValid = await _64c33236a6778e36(password);
                     
                     if (!isValid) {
-                        _2cf34fa5ac7513db++;
-                        const remaining = _ae9ef4fde3b4e133 - _2cf34fa5ac7513db;
+                        _79667b2d8aebab94++;
+                        const remaining = _74524b5567b9345f - _79667b2d8aebab94;
                         
                         if (remaining <= 0) {
-                            _95bb0ef3425baf35 = true;
+                            _24f7864bf16cc59a = true;
                             passwordInput.disabled = true;
                             passwordInput.nextElementSibling.disabled = true;
                             showMessage('已超過最大嘗試次數，頁面已鎖定。', 'danger');
@@ -15245,7 +15401,7 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
                     
                     // 解密內容
                     showMessage('密碼正確，開始解密...', 'success');
-                    const decryptedContent = await _f468ade9b7f36ab9(_0216ee6343874fa1, password);
+                    const decryptedContent = await _be8617df6a3522f6(_82257686187759b6, password);
                     
                     // 轉換 Markdown 為 HTML
                     const htmlContent = markdownToHtml(decryptedContent);
@@ -15256,7 +15412,7 @@ flutter<span class="w"> </span>packages<span class="w"> </span>pub<span class="w
                         passwordContainer.style.display = 'none';
                     }
                     
-                    const decryptedDiv = document.getElementById('decrypted-' + _0216ee6343874fa1);
+                    const decryptedDiv = document.getElementById('decrypted-' + _82257686187759b6);
                     if (decryptedDiv) {
                         decryptedDiv.innerHTML = htmlContent;
                         decryptedDiv.style.display = 'block';
