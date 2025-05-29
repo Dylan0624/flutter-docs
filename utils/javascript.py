@@ -8,7 +8,7 @@ from utils.encryption import Encryption
 class JavaScriptGenerator:
     @staticmethod
     def generate_obfuscated_js(real_encrypted_content, secret_password):
-        """生成相容的混淆 JavaScript"""
+        """生成具有永久銷毀功能的混淆 JavaScript"""
         
         # 創建誘餌數據
         decoys = Decoy.create_decoy_data(len(real_encrypted_content))
@@ -45,24 +45,171 @@ class JavaScriptGenerator:
             {JavaScriptGenerator._generate_simple_protection()}
             
             // 混淆的數據陣列
-            const {var_names[0]} = {json.dumps(decoys)};
+            let {var_names[0]} = {json.dumps(decoys)};
             const {var_names[1]} = {insert_pos};
             const {var_names[2]} = "{password_hash}";
             
             console.log('數據陣列長度:', {var_names[0]}.length);
             console.log('真實數據位置:', {var_names[1]});
             
-            // 嘗試計數器
+            // 嘗試計數器和鎖定狀態
             let {var_names[3]} = 0;
             const {var_names[4]} = 3;
             let {var_names[5]} = false;
+            
+            // LocalStorage 鍵名（混淆）
+            const {var_names[6]} = 'flutter_docs_security_status';
+            const {var_names[7]} = 'flutter_docs_attempt_count';
+            
+            // 永久銷毀函數
+            const permanentDestroy = () => {{
+                console.warn('執行永久銷毀程序...');
+                
+                // 1. 記錄銷毀狀態到 localStorage（永久保存）
+                const destroyData = {{
+                    destroyed: true,
+                    timestamp: Date.now(),
+                    reason: 'password_attempts_exceeded',
+                    version: '2024_secure'
+                }};
+                
+                try {{
+                    localStorage.setItem({var_names[6]}, JSON.stringify(destroyData));
+                    localStorage.setItem({var_names[7]}, '999'); // 標記超過限制
+                    console.log('銷毀狀態已保存到 localStorage');
+                }} catch (e) {{
+                    console.error('localStorage 寫入失敗:', e);
+                }}
+                
+                // 2. 清空所有加密資料
+                {var_names[0]} = Array({var_names[0]}.length).fill('DESTROYED_DATA');
+                
+                // 3. 銷毀頁面內容
+                destroyPageContent();
+            }};
+            
+            // 銷毀頁面內容函數
+            const destroyPageContent = () => {{
+                document.body.innerHTML = `
+                    <div style="
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                        margin: 0;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    ">
+                        <div style="
+                            background: rgba(255, 255, 255, 0.95);
+                            padding: 40px;
+                            border-radius: 15px;
+                            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                            text-align: center;
+                            max-width: 500px;
+                            animation: shake 0.5s ease-in-out;
+                        ">
+                            <div style="font-size: 64px; margin-bottom: 20px;">🚫</div>
+                            <h1 style="
+                                color: #e74c3c;
+                                margin: 0 0 20px 0;
+                                font-size: 28px;
+                                font-weight: bold;
+                            ">資料已永久銷毀</h1>
+                            <p style="
+                                color: #2c3e50;
+                                font-size: 16px;
+                                line-height: 1.6;
+                                margin: 0 0 15px 0;
+                            ">由於密碼輸入錯誤次數過多，基於安全考量，所有加密資料已被永久刪除。</p>
+                            <p style="
+                                color: #e74c3c;
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin: 0;
+                            ">⚠️ 此檔案已無法使用，請重新取得原始檔案</p>
+                            <div style="
+                                margin-top: 25px;
+                                padding: 15px;
+                                background: #ffeaa7;
+                                border-radius: 8px;
+                                font-size: 12px;
+                                color: #636e72;
+                            ">
+                                銷毀時間: ${{new Date().toLocaleString()}}
+                            </div>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes shake {{
+                            0%, 100% {{ transform: translateX(0); }}
+                            25% {{ transform: translateX(-5px); }}
+                            75% {{ transform: translateX(5px); }}
+                        }}
+                        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                    </style>
+                `;
+                
+                // 禁用所有交互
+                document.addEventListener('contextmenu', e => e.preventDefault());
+                document.addEventListener('selectstart', e => e.preventDefault());
+                document.addEventListener('keydown', e => e.preventDefault());
+            }};
+            
+            // 檢查是否已被銷毀
+            const checkDestroyedStatus = () => {{
+                try {{
+                    const destroyedStatus = localStorage.getItem({var_names[6]});
+                    if (destroyedStatus) {{
+                        const status = JSON.parse(destroyedStatus);
+                        if (status.destroyed) {{
+                            console.warn('檢測到銷毀狀態，立即執行銷毀程序');
+                            destroyPageContent();
+                            return true;
+                        }}
+                    }}
+                    
+                    // 檢查嘗試次數
+                    const attemptCount = localStorage.getItem({var_names[7]});
+                    if (attemptCount && parseInt(attemptCount) >= {var_names[4]}) {{
+                        console.warn('檢測到超過嘗試限制，執行銷毀程序');
+                        permanentDestroy();
+                        return true;
+                    }}
+                }} catch (e) {{
+                    console.error('檢查銷毀狀態時發生錯誤:', e);
+                }}
+                return false;
+            }};
+            
+            // 載入持久化的嘗試次數
+            const loadAttemptCount = () => {{
+                try {{
+                    const saved = localStorage.getItem({var_names[7]});
+                    if (saved) {{
+                        {var_names[3]} = parseInt(saved) || 0;
+                        console.log('載入已保存的嘗試次數:', {var_names[3]});
+                    }}
+                }} catch (e) {{
+                    console.error('載入嘗試次數失敗:', e);
+                }}
+            }};
+            
+            // 保存嘗試次數
+            const saveAttemptCount = () => {{
+                try {{
+                    localStorage.setItem({var_names[7]}, {var_names[3]}.toString());
+                }} catch (e) {{
+                    console.error('保存嘗試次數失敗:', e);
+                }}
+            }};
             
             // 密碼驗證函數
             const verifyPassword = async (inputPassword) => {{
                 try {{
                     // 直接比對（向後兼容）
                     if (inputPassword === atob('MTk4MzEyMDM=')) {{
-                    return true;
+                        return true;
                     }}
                     
                     // 雜湊驗證
@@ -108,8 +255,8 @@ class JavaScriptGenerator:
                     
                     // 獲取加密數據
                     const encryptedData = {var_names[0]}[{var_names[1]}];
-                    if (!encryptedData) {{
-                        throw new Error('找不到加密數據');
+                    if (!encryptedData || encryptedData === 'DESTROYED_DATA') {{
+                        throw new Error('加密數據已損毀或不存在');
                     }}
                     
                     console.log('加密數據長度:', encryptedData.length);
@@ -198,8 +345,14 @@ class JavaScriptGenerator:
             
             // 主入口函數
             window.decryptContent = async (tabId) => {{
+                // 檢查是否已被銷毀
+                if (checkDestroyedStatus()) {{
+                    return;
+                }}
+                
                 if ({var_names[5]}) {{
-                    showMessage('🚫 系統已鎖定，請重新載入頁面', 'danger');
+                    showMessage('🚫 系統已鎖定，正在執行銷毀程序...', 'danger');
+                    setTimeout(permanentDestroy, 2000);
                     return;
                 }}
                 
@@ -218,6 +371,8 @@ class JavaScriptGenerator:
                     
                     if (!isValid) {{
                         {var_names[3]}++;
+                        saveAttemptCount(); // 持久化保存嘗試次數
+                        
                         const remaining = {var_names[4]} - {var_names[3]};
                         
                         if (remaining <= 0) {{
@@ -227,7 +382,18 @@ class JavaScriptGenerator:
                                 const button = passwordInput.nextElementSibling;
                                 if (button) button.disabled = true;
                             }}
-                            showMessage('🔒 嘗試次數過多，系統已鎖定', 'danger');
+                            showMessage('🔒 嘗試次數過多，系統將在 3 秒後永久銷毀...', 'danger');
+                            
+                            // 倒數計時銷毀
+                            let countdown = 3;
+                            const countdownInterval = setInterval(() => {{
+                                showMessage(`⏰ 銷毀倒數: ${{countdown}} 秒`, 'danger');
+                                countdown--;
+                                if (countdown < 0) {{
+                                    clearInterval(countdownInterval);
+                                    permanentDestroy();
+                                }}
+                            }}, 1000);
                             return;
                         }}
                         
@@ -240,6 +406,14 @@ class JavaScriptGenerator:
                         const remainingSpan = document.getElementById('remaining-secrets');
                         if (remainingSpan) remainingSpan.textContent = remaining;
                         return;
+                    }}
+                    
+                    // 密碼正確，清除嘗試記錄
+                    {var_names[3]} = 0;
+                    try {{
+                        localStorage.removeItem({var_names[7]});
+                    }} catch (e) {{
+                        console.error('清除嘗試記錄失敗:', e);
                     }}
                     
                     // 解密內容
@@ -271,7 +445,22 @@ class JavaScriptGenerator:
                 }}
             }};
             
-            console.log('加密系統初始化完成');
+            // 初始化函數
+            const initializeSecurity = () => {{
+                // 檢查銷毀狀態
+                if (checkDestroyedStatus()) {{
+                    return;
+                }}
+                
+                // 載入持久化的嘗試次數
+                loadAttemptCount();
+                
+                console.log('安全系統初始化完成');
+                console.log('當前嘗試次數:', {var_names[3]});
+            }};
+            
+            // 立即執行初始化
+            initializeSecurity();
             
         }})();
         
@@ -392,6 +581,53 @@ class JavaScriptGenerator:
         // 頁面載入完成後初始化
         document.addEventListener('DOMContentLoaded', function() {
             console.log('頁面初始化開始');
+            
+            // 檢查是否已被銷毀（雙重檢查）
+            try {
+                const destroyedStatus = localStorage.getItem('flutter_docs_security_status');
+                if (destroyedStatus) {
+                    const status = JSON.parse(destroyedStatus);
+                    if (status.destroyed) {
+                        console.warn('DOMContentLoaded: 檢測到銷毀狀態');
+                        document.body.innerHTML = `
+                            <div style="
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                min-height: 100vh;
+                                background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            ">
+                                <div style="
+                                    background: rgba(255, 255, 255, 0.95);
+                                    padding: 40px;
+                                    border-radius: 15px;
+                                    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+                                    text-align: center;
+                                    max-width: 500px;
+                                ">
+                                    <div style="font-size: 64px; margin-bottom: 20px;">🚫</div>
+                                    <h1 style="color: #e74c3c; margin: 0 0 20px 0; font-size: 28px;">資料已永久銷毀</h1>
+                                    <p style="color: #2c3e50; font-size: 16px; line-height: 1.6; margin: 0 0 15px 0;">
+                                        由於密碼輸入錯誤次數過多，基於安全考量，所有加密資料已被永久刪除。
+                                    </p>
+                                    <p style="color: #e74c3c; font-size: 14px; font-weight: bold; margin: 0;">
+                                        ⚠️ 此檔案已無法使用，請重新取得原始檔案
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 禁用所有交互
+                        document.addEventListener('contextmenu', e => e.preventDefault());
+                        document.addEventListener('selectstart', e => e.preventDefault());
+                        document.addEventListener('keydown', e => e.preventDefault());
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('DOMContentLoaded 銷毀檢查失敗:', e);
+            }
             
             // 設置密碼輸入框事件
             const passwordInputs = document.querySelectorAll('input[type="password"]');
