@@ -118,7 +118,48 @@ class HTMLTemplate:
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
             line-height: 1.6;
+            /* 修改：只對非程式碼區域禁用選取，允許複製程式碼 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
+        }}
+        
+        /* 新增：允許程式碼區域被選取和複製 */
+        .content-wrapper pre,
+        .content-wrapper code,
+        .decrypted-content pre,
+        .decrypted-content code {{
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }}
+        
+        /* 新增：為程式碼區域添加複製按鈕樣式 */
+        .copy-btn {{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }}
+        
+        .copy-btn:hover {{
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }}
+        
+        .copy-btn.copied {{
+            background: #28a745;
+            color: white;
         }}
         
         .main-container {{
@@ -240,6 +281,7 @@ class HTMLTemplate:
             overflow-x: auto;
             margin: 25px 0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
         }}
         
         .content-wrapper code {{
@@ -428,6 +470,165 @@ class HTMLTemplate:
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <script>
+        // 新增：複製程式碼功能
+        function addCopyButtons() {{
+            const preElements = document.querySelectorAll('pre');
+            preElements.forEach((pre, index) => {{
+                // 如果已經有複製按鈕，跳過
+                if (pre.querySelector('.copy-btn')) return;
+                
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                copyBtn.title = 'Copy code';
+                
+                copyBtn.addEventListener('click', async () => {{
+                    const code = pre.querySelector('code') ? pre.querySelector('code').textContent : pre.textContent;
+                    
+                    try {{
+                        await navigator.clipboard.writeText(code);
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        copyBtn.classList.add('copied');
+                        copyBtn.title = 'Copied!';
+                        
+                        setTimeout(() => {{
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                            copyBtn.classList.remove('copied');
+                            copyBtn.title = 'Copy code';
+                        }}, 2000);
+                        
+                        showMessage('程式碼已複製到剪貼簿！', 'success');
+                    }} catch (err) {{
+                        // 使用舊方法作為後備
+                        const textArea = document.createElement('textarea');
+                        textArea.value = code;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        copyBtn.classList.add('copied');
+                        
+                        setTimeout(() => {{
+                            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                            copyBtn.classList.remove('copied');
+                        }}, 2000);
+                        
+                        showMessage('程式碼已複製到剪貼簿！', 'success');
+                    }}
+                }});
+                
+                pre.style.position = 'relative';
+                pre.appendChild(copyBtn);
+            }});
+        }}
+        
+        // 顯示訊息的輔助函數
+        function showMessage(message, type) {{
+            const oldAlert = document.querySelector('.temp-alert');
+            if (oldAlert) oldAlert.remove();
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${{type}} temp-alert`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${{type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}}"></i>
+                ${{message}}
+            `;
+            
+            const container = document.querySelector('.main-container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            setTimeout(() => {{
+                if (alertDiv.parentNode) alertDiv.remove();
+            }}, 3000);
+        }}
+        
+        // showSecrets 函數
+        function showSecrets() {{
+            // 檢查是否已經存在 secrets 分頁
+            let secretsNavItem = document.getElementById('secrets-nav-item');
+            let secretsTab = document.getElementById('secrets-tab');
+            
+            if (secretsNavItem && secretsTab) {{
+                secretsNavItem.classList.remove('d-none');
+                secretsTab.innerHTML = '<i class="fas fa-lock"></i> Secrets';
+                const tab = new bootstrap.Tab(secretsTab);
+                tab.show();
+                showMessage('🔍 發現隱藏內容！請輸入密碼解鎖...', 'info');
+            }} else {{
+                showMessage('❌ 找不到加密內容。', 'warning');
+            }}
+        }}
+        
+        // 頁面載入完成後添加複製按鈕
+        document.addEventListener('DOMContentLoaded', function() {{
+            addCopyButtons();
+            
+            // 監聽 tab 切換，為新內容添加複製按鈕
+            const tabLinks = document.querySelectorAll('a[data-bs-toggle="tab"]');
+            tabLinks.forEach(tabLink => {{
+                tabLink.addEventListener('shown.bs.tab', function () {{
+                    setTimeout(addCopyButtons, 100); // 延遲確保內容已載入
+                }});
+            }});
+            
+            // 為密碼輸入框添加 Enter 鍵支援
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            passwordInputs.forEach(input => {{
+                input.addEventListener('keypress', function(e) {{
+                    if (e.key === 'Enter') {{
+                        const button = input.nextElementSibling;
+                        if (button && button.onclick) {{
+                            button.click();
+                        }}
+                    }}
+                }});
+            }});
+            
+            if (typeof Prism !== 'undefined') {{
+                Prism.highlightAll();
+            }}
+        }});
+        
+        // 修改右鍵選單事件，只對非程式碼區域禁用
+        document.addEventListener('contextmenu', function(e) {{
+            // 如果點擊的是程式碼區域，允許右鍵選單
+            if (e.target.closest('pre') || e.target.closest('code')) {{
+                return true;
+            }}
+            e.preventDefault();
+        }});
+        
+        // 修改選取事件，允許在程式碼區域選取
+        document.addEventListener('selectstart', function(e) {{
+            // 如果選取的是程式碼區域，允許選取
+            if (e.target.closest('pre') || e.target.closest('code')) {{
+                return true;
+            }}
+            e.preventDefault();
+        }});
+        
+        // 修改鍵盤事件，允許在程式碼區域使用 Ctrl+C
+        document.addEventListener('keydown', function(e) {{
+            // 如果焦點在程式碼區域，允許複製快捷鍵
+            if (e.target.closest('pre') || e.target.closest('code')) {{
+                if (e.ctrlKey && e.key === 'c') {{
+                    return true; // 允許複製
+                }}
+            }}
+            
+            // 其他開發者工具快捷鍵仍然禁用
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) ||
+                (e.ctrlKey && (e.key === 'u' || e.key === 'U'))) {{
+                e.preventDefault();
+                return false;
+            }}
+        }});
+    </script>
     
     {js_content}
 </body>
