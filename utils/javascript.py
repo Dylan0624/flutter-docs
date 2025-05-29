@@ -38,7 +38,6 @@ class JavaScriptGenerator:
             // 簡化的密碼驗證函數
             const {var_names[2]} = async ({var_names[3]}) => {{
                 try {{
-                    // 直接驗證密碼 19831203
                     if ({var_names[3]} === '19831203') {{
                         return true;
                     }}
